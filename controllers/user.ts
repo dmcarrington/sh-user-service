@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import {  responseError } from '../helpers';
 import lnurlServer from '../helpers/lnurl';
+import {addUserFromLN} from '../helpers/mongo'
 const Pusher = require("pusher");
 
 export const lnurlLogin = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -29,6 +30,7 @@ export const pseudoLogin = async (req: Request, res: Response, next: NextFunctio
             pusher.trigger("lnd-auth", "auth", {
                 key
               });
+              addUserFromLN(key)
             // Send {status: "OK"} so the client acknowledges the login success
             res.json({status: "OK"})
         } else {
