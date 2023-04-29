@@ -11,7 +11,7 @@ export const updateAccount = async (
 ): Promise<any> => {
   try {
     const updatedAccount = req.body;
-    console.log("updating account with new body " + updateAccount);
+    console.log("updating account with new body " + req.body);
     if (await updateUserAccount(updatedAccount)) {
       res.json({ status: "OK" });
     } else {

@@ -57,7 +57,8 @@ export async function updateUserAccount(newAccountDetails: any) {
   if (newAccountDetails.lnurlKey) {
     if (await checkLNUserExists(newAccountDetails.lnurlKey)) {
       // update based on lnurlKey
-      users.updateOne(
+      console.log("updating account: " + newAccountDetails.lnurlKey);
+      await users.updateOne(
         { lnurlKey: newAccountDetails.lnurlKey },
         {
           $set: {
