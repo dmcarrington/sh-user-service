@@ -50,7 +50,7 @@ Server Running at https://localhost:5001
 
 ## Running via Docker
 
-As an alternative to building and running the client and service individually, you can run these via Docker. In the root of the project, simply run `docker_compose up`, and wait for it to build and start the `ln-auth-service` and `ln-auth-ui` containers. Once ready, the UI can be accessed at `http://localhost:3000`.
+As an alternative to building and running the client and service individually, you can run these via Docker. In the root of the project, simply run `docker_compose up`, and wait for it to build and start the `sh-user-service` and `mongo` containers. Once ready, the UI needs to be run separately.
 
 ## Usage
 
