@@ -1,5 +1,6 @@
 let mongoose = require("mongoose");
 import "dotenv/config";
+import { Error } from "mongoose";
 
 // connect to mongo, for now on our local docker network
 const mongoURI = process.env.MONGO_CONNECTION_STRING;
@@ -27,6 +28,16 @@ async function checkLNUserExists(key: any) {
   }
 }
 
+// Check if a user with a given email exists
+async function checkEmailUserExists(emailAddress: any) {
+  let existingUsers = await users.findOne({ email: emailAddress });
+  if (existingUsers) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 // Create an account with a given key if it does not yet exist
 export async function addUserFromLN(key: any) {
   if (!(await checkLNUserExists(key))) {
@@ -38,5 +49,46 @@ export async function addUserFromLN(key: any) {
     }
   } else {
     console.log("user exists, not creating");
+  }
+}
+
+// Update account details for a single account identifed by key or email
+export async function updateUserAccount(newAccountDetails: any) {
+  if (newAccountDetails.lnurlKey) {
+    if (await checkLNUserExists(newAccountDetails.lnurlKey)) {
+      // update based on lnurlKey
+      console.log("updating account: " + newAccountDetails.lnurlKey);
+      await users.updateOne(
+        { lnurlKey: newAccountDetails.lnurlKey },
+        {
+          $set: {
+            email: newAccountDetails.email,
+            name: newAccountDetails.name,
+          },
+          $currentDate: { lastModified: true },
+        }
+      );
+      return true;
+    } else {
+      // a lnurlkey was specified but does not exist, throw error
+      return false;
+    }
+  } else if (newAccountDetails.email) {
+    if (await checkEmailUserExists(newAccountDetails.email)) {
+      // update based on email
+      users.updateOne(
+        { email: newAccountDetails.email },
+        {
+          $set: {
+            name: newAccountDetails.name,
+          },
+          $currentDate: { lastModified: true },
+        }
+      );
+      return true;
+    } else {
+      // email address was specified but does not exist, throw error
+      return false;
+    }
   }
 }

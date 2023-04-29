@@ -1,8 +1,26 @@
 import { Request, Response, NextFunction } from "express";
 import { responseError } from "../helpers";
 import lnurlServer from "../helpers/lnurl";
-import { addUserFromLN } from "../helpers/mongo";
+import { addUserFromLN, updateUserAccount } from "../helpers/mongo";
 const Pusher = require("pusher");
+
+export const updateAccount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    const updatedAccount = req.body;
+    console.log("updating account with new body " + req.body);
+    if (await updateUserAccount(updatedAccount)) {
+      res.json({ status: "OK" });
+    } else {
+      return responseError(res, 400, "Unable to update account");
+    }
+  } catch (err) {
+    next(err);
+  }
+};
 
 export const lnurlLogin = async (
   req: Request,
