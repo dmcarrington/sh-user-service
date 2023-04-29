@@ -14,25 +14,28 @@ let userSchema = new mongoose.Schema({
   password: String, // Password required if using regular login
 });
 
+// Instantiate user schema
 let users = mongoose.model("users", userSchema);
 
+// Check if a user with a given key exists
 async function checkLNUserExists(key: any) {
   let existingUsers = await users.findOne({ lnurlKey: key });
-  console.log("existingUsers: " + existingUsers);
   if (existingUsers) {
-    console.log("user exists");
     return true;
   } else {
-    console.log("user not found");
     return false;
   }
 }
 
+// Create an account with a given key if it does not yet exist
 export async function addUserFromLN(key: any) {
   if (!(await checkLNUserExists(key))) {
     console.log("creating account: " + key);
-    let res = await users.create({ lnurlKey: key });
-    console.log("res: " + res);
+    try {
+      await users.create({ lnurlKey: key });
+    } catch (err) {
+      console.log("Error creating account: " + err);
+    }
   } else {
     console.log("user exists, not creating");
   }

@@ -38,7 +38,7 @@ export const pseudoLogin = async (
       pusher.trigger("lnd-auth", "auth", {
         key,
       });
-      console.log("adding user with key " + key);
+
       addUserFromLN(key);
       // Send {status: "OK"} so the client acknowledges the login success
       res.json({ status: "OK" });
