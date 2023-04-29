@@ -1,6 +1,6 @@
 let mongoose = require("mongoose");
 import "dotenv/config";
-import { Error } from "mongoose";
+const crypto = require("crypto");
 
 // connect to mongo, for now on our local docker network
 const mongoURI = process.env.MONGO_CONNECTION_STRING;
@@ -90,5 +90,22 @@ export async function updateUserAccount(newAccountDetails: any) {
       // email address was specified but does not exist, throw error
       return false;
     }
+  }
+}
+
+export async function createAccountByEmail(properties: {
+  email: string;
+  password: string;
+}) {
+  let existingUser = await users.findOne({ email: properties.email });
+  if (existingUser) {
+    return false;
+  } else {
+    const pwd = crypto
+      .createHash("sha256")
+      .update(properties.password)
+      .digest("hex");
+    await users.create({ email: properties.email, password: pwd });
+    return true;
   }
 }
