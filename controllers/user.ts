@@ -1,8 +1,28 @@
 import { Request, Response, NextFunction } from "express";
 import { responseError } from "../helpers";
 import lnurlServer from "../helpers/lnurl";
-import { addUserFromLN, updateUserAccount } from "../helpers/mongo";
+import {
+  addUserFromLN,
+  updateUserAccount,
+  createAccountByEmail,
+} from "../helpers/mongo";
 const Pusher = require("pusher");
+
+export const createAccount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    if (await createAccountByEmail(req.body)) {
+      res.json({ status: "OK" });
+    } else {
+      return responseError(res, 400, "Unable to create account");
+    }
+  } catch (err) {
+    next(err);
+  }
+};
 
 export const updateAccount = async (
   req: Request,
