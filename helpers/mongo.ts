@@ -93,6 +93,7 @@ export async function updateUserAccount(newAccountDetails: any) {
   }
 }
 
+// Create an account with a given email address and password
 export async function createAccountByEmail(properties: {
   email: string;
   password: string;
