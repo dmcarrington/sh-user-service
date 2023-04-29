@@ -17,16 +17,23 @@ let userSchema = new mongoose.Schema({
 let users = mongoose.model("users", userSchema);
 
 async function checkLNUserExists(key: any) {
-  let existingUsers = await users.find().where("lnurlKey").eq(key);
+  let existingUsers = await users.findOne({ lnurlKey: key });
+  console.log("existingUsers: " + existingUsers);
   if (existingUsers) {
+    console.log("user exists");
     return true;
   } else {
+    console.log("user not found");
     return false;
   }
 }
 
 export async function addUserFromLN(key: any) {
-  if (!checkLNUserExists(key)) {
-    await users.create({ lnurlKey: key });
+  if (!(await checkLNUserExists(key))) {
+    console.log("creating account: " + key);
+    let res = await users.create({ lnurlKey: key });
+    console.log("res: " + res);
+  } else {
+    console.log("user exists, not creating");
   }
 }
