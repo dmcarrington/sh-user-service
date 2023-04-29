@@ -5,8 +5,40 @@ import {
   addUserFromLN,
   updateUserAccount,
   createAccountByEmail,
+  checkEmailUserExists,
 } from "../helpers/mongo";
+import crypto from "crypto";
+
 const Pusher = require("pusher");
+
+export const loginWithEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    const user = await checkEmailUserExists(req.body.email);
+    if (user) {
+      const pwd = crypto
+        .createHash("sha256")
+        .update(req.body.password)
+        .digest("hex");
+      if (pwd === user.password) {
+        res.json(user);
+        const email = user.email;
+        pusher.trigger("lnd-auth", "auth", {
+          email,
+        });
+      } else {
+        return responseError(res, 401, "unauthorized");
+      }
+    } else {
+      return responseError(res, 401, "unauthorized");
+    }
+  } catch (err) {
+    return responseError(res, 500, "error");
+  }
+};
 
 export const createAccount = async (
   req: Request,

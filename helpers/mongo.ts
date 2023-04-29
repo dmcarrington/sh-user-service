@@ -29,10 +29,10 @@ async function checkLNUserExists(key: any) {
 }
 
 // Check if a user with a given email exists
-async function checkEmailUserExists(emailAddress: any) {
+export async function checkEmailUserExists(emailAddress: any) {
   let existingUsers = await users.findOne({ email: emailAddress });
   if (existingUsers) {
-    return true;
+    return existingUsers;
   } else {
     return false;
   }
