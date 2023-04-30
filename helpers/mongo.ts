@@ -111,7 +111,6 @@ export async function updateUserAccount(newAccountDetails: any) {
 
 // Add lnbits details for a single account identifed by key or email
 export async function addLnbitsAccount(newAccountDetails: any) {
-  console.log(newAccountDetails);
   if (newAccountDetails.lnurlKey) {
     if (await checkLNUserExists(newAccountDetails.lnurlKey)) {
       // update based on lnurlKey

@@ -154,7 +154,7 @@ export const pseudoLogin = async (
         name,
       });
 
-      if (await createMongoAccount(key)) {
+      if (await createMongoAccount({ key: key })) {
         await initialiseLnbitsAccount({ key: key });
       }
       // Send {status: "OK"} so the client acknowledges the login success
