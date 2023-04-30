@@ -19,10 +19,10 @@ let userSchema = new mongoose.Schema({
 let users = mongoose.model("users", userSchema);
 
 // Check if a user with a given key exists
-async function checkLNUserExists(key: any) {
-  let existingUsers = await users.findOne({ lnurlKey: key });
-  if (existingUsers) {
-    return true;
+export async function checkLNUserExists(key: any) {
+  let existingUser = await users.findOne({ lnurlKey: key });
+  if (existingUser) {
+    return existingUser;
   } else {
     return false;
   }

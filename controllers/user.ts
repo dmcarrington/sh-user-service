@@ -6,6 +6,7 @@ import {
   updateUserAccount,
   createAccountByEmail,
   checkEmailUserExists,
+  checkLNUserExists,
 } from "../helpers/mongo";
 import crypto from "crypto";
 
@@ -26,8 +27,10 @@ export const loginWithEmail = async (
       if (pwd === user.password) {
         res.json(user);
         const email = user.email;
+        const name = user.name;
         pusher.trigger("lnd-auth", "auth", {
           email,
+          name,
         });
       } else {
         return responseError(res, 401, "unauthorized");
@@ -105,8 +108,20 @@ export const pseudoLogin = async (
     if (query.key) {
       const key: string = String(query.key);
 
+      // This will return false if this is the first time this user has logged in.
+      // Expected, as these fields require a subsequent update to set them anyway.
+      const user = await checkLNUserExists(key);
+      let email = "";
+      let name = "";
+      if (user) {
+        email = user.email;
+        name = user.name;
+      }
+
       pusher.trigger("lnd-auth", "auth", {
         key,
+        email,
+        name,
       });
 
       addUserFromLN(key);
