@@ -139,6 +139,7 @@ export async function addLnbitsAccount(newAccountDetails: any) {
       return true;
     } else {
       // a lnurlkey was specified but does not exist, throw error
+      console.log("Unable to find given user by lnurlKey");
       return false;
     }
   } else if (newAccountDetails.email) {
@@ -159,6 +160,7 @@ export async function addLnbitsAccount(newAccountDetails: any) {
       return true;
     } else {
       // email address was specified but does not exist, throw error
+      console.log("Unable to find given user by email");
       return false;
     }
   }

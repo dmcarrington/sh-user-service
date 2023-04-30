@@ -137,7 +137,7 @@ export const pseudoLogin = async (
       if (await addUserFromLN(key)) {
         const lnbits = await createLnbitsAccount();
         await addLnbitsAccount({
-          email: req.body.email,
+          lnurlKey: key,
           lnbitsUsername: lnbits?.user_name,
           lnbitsUserId: lnbits?.user_id,
           lnbitsWalletId: lnbits?.wallet_id,
