@@ -42,18 +42,28 @@ export async function checkEmailUserExists(emailAddress: any) {
   }
 }
 
-// Create an account with a given key if it does not yet exist
-export async function addUserFromLN(key: any) {
-  if (!(await checkLNUserExists(key))) {
-    console.log("creating account: " + key);
-    try {
-      if (await users.create({ lnurlKey: key })) return true;
-    } catch (err) {
-      console.log("Error creating account: " + err);
+// create a local account object either based on our lnurl key or email address
+export async function createMongoAccount(params: any) {
+  if (params.key) {
+    if (await checkLNUserExists(params.key)) {
       return false;
+    } else {
+      if (await users.create({ lnurlKey: params.key })) return true;
+    }
+  } else if (params.email) {
+    let existingUser = await users.findOne({ email: params.email });
+    if (existingUser) {
+      return false;
+    } else {
+      const pwd = crypto
+        .createHash("sha256")
+        .update(params.password)
+        .digest("hex");
+      if (await users.create({ email: params.email, password: pwd }))
+        return true;
     }
   } else {
-    console.log("user exists, not creating");
+    console.log("Creating account requires key or email");
     return false;
   }
 }
@@ -96,24 +106,6 @@ export async function updateUserAccount(newAccountDetails: any) {
       // email address was specified but does not exist, throw error
       return false;
     }
-  }
-}
-
-// Create an account with a given email address and password
-export async function createAccountByEmail(properties: {
-  email: string;
-  password: string;
-}) {
-  let existingUser = await users.findOne({ email: properties.email });
-  if (existingUser) {
-    return false;
-  } else {
-    const pwd = crypto
-      .createHash("sha256")
-      .update(properties.password)
-      .digest("hex");
-    await users.create({ email: properties.email, password: pwd });
-    return true;
   }
 }
 

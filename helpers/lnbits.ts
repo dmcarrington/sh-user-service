@@ -7,10 +7,11 @@ function getErrorMessage(error: unknown) {
   return String(error);
 }
 
+// Create an account for this user in lnbits using the usernmanager extension.
+// The user account name on lnbits will be a new uuid, the wallet name will be "satoshis_hive"
 export async function createLnbitsAccount() {
   try {
     const httpAgent = new SocksProxyAgent(process.env.SOCKS_PROXY_AGENT);
-    console.log(httpAgent);
     const httpsAgent = httpAgent;
 
     const newUserURL = process.env.LNBITS_ADDRESS + "/usermanager/api/v1/users";
@@ -32,7 +33,6 @@ export async function createLnbitsAccount() {
       headers: { "X-Api-Key": lnbitsApiKey },
     });
 
-    console.log(result.data);
     return {
       user_name: user_name,
       user_id: result.data.id,
