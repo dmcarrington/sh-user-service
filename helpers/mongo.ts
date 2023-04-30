@@ -13,6 +13,10 @@ let userSchema = new mongoose.Schema({
   name: String, // Optional given name property
   email: String, // Email address required for regular login, optional if using lnurl
   password: String, // Password required if using regular login
+  lnbitsUsername: String, // username for our lnbits account (uuid)
+  lnbitsUserId: String, // lnbits local user id
+  lnbitsWalletName: String, // name of the above user's lbnits account (always 'satoshis_hive' for now)
+  lnbitsWalletId: String, // lnbits local wallet id
 });
 
 // Instantiate user schema
@@ -76,7 +80,7 @@ export async function updateUserAccount(newAccountDetails: any) {
   } else if (newAccountDetails.email) {
     if (await checkEmailUserExists(newAccountDetails.email)) {
       // update based on email
-      users.updateOne(
+      await users.updateOne(
         { email: newAccountDetails.email },
         {
           $set: {
@@ -108,5 +112,52 @@ export async function createAccountByEmail(properties: {
       .digest("hex");
     await users.create({ email: properties.email, password: pwd });
     return true;
+  }
+}
+
+// Add lnbits details for a single account identifed by key or email
+export async function addLnbitsAccount(newAccountDetails: any) {
+  console.log(newAccountDetails);
+  if (newAccountDetails.lnurlKey) {
+    if (await checkLNUserExists(newAccountDetails.lnurlKey)) {
+      // update based on lnurlKey
+      console.log("updating account: " + newAccountDetails.lnurlKey);
+      await users.updateOne(
+        { lnurlKey: newAccountDetails.lnurlKey },
+        {
+          $set: {
+            lnbitsUsername: newAccountDetails.lnbitsUsername,
+            lnbitsUserId: newAccountDetails.lnbitsUserId,
+            lnbitsWalletName: newAccountDetails.lnbitsWalletName,
+            lnbitsWalletId: newAccountDetails.lnbitsWalletId,
+          },
+          $currentDate: { lastModified: true },
+        }
+      );
+      return true;
+    } else {
+      // a lnurlkey was specified but does not exist, throw error
+      return false;
+    }
+  } else if (newAccountDetails.email) {
+    if (await checkEmailUserExists(newAccountDetails.email)) {
+      // update based on email
+      await users.updateOne(
+        { email: newAccountDetails.email },
+        {
+          $set: {
+            lnbitsUsername: newAccountDetails.lnbitsUsername,
+            lnbitsUserId: newAccountDetails.lnbitsUserId,
+            lnbitsWalletName: newAccountDetails.lnbitsWalletName,
+            lnbitsWalletId: newAccountDetails.lnbitsWalletId,
+          },
+          $currentDate: { lastModified: true },
+        }
+      );
+      return true;
+    } else {
+      // email address was specified but does not exist, throw error
+      return false;
+    }
   }
 }

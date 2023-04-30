@@ -1,12 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { responseError } from "../helpers";
 import lnurlServer from "../helpers/lnurl";
+import { createLnbitsAccount } from "../helpers/lnbits";
 import {
   addUserFromLN,
   updateUserAccount,
   createAccountByEmail,
   checkEmailUserExists,
   checkLNUserExists,
+  addLnbitsAccount,
 } from "../helpers/mongo";
 import crypto from "crypto";
 
@@ -50,6 +52,15 @@ export const createAccount = async (
 ): Promise<any> => {
   try {
     if (await createAccountByEmail(req.body)) {
+      const lnbits = await createLnbitsAccount();
+      console.log(lnbits);
+      await addLnbitsAccount({
+        email: req.body.email,
+        lnbitsUsername: lnbits?.user_name,
+        lnbitsUserId: lnbits?.user_id,
+        lnbitsWalletId: lnbits?.wallet_id,
+        lnbitsWalletName: lnbits?.wallet_name,
+      });
       res.json({ status: "OK" });
     } else {
       return responseError(res, 400, "Unable to create account");
