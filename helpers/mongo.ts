@@ -13,6 +13,10 @@ let userSchema = new mongoose.Schema({
   name: String, // Optional given name property
   email: String, // Email address required for regular login, optional if using lnurl
   password: String, // Password required if using regular login
+  lnbitsUsername: String, // username for our lnbits account (uuid)
+  lnbitsUserId: String, // lnbits local user id
+  lnbitsWalletName: String, // name of the above user's lbnits account (always 'satoshis_hive' for now)
+  lnbitsWalletId: String, // lnbits local wallet id
 });
 
 // Instantiate user schema
@@ -38,17 +42,29 @@ export async function checkEmailUserExists(emailAddress: any) {
   }
 }
 
-// Create an account with a given key if it does not yet exist
-export async function addUserFromLN(key: any) {
-  if (!(await checkLNUserExists(key))) {
-    console.log("creating account: " + key);
-    try {
-      await users.create({ lnurlKey: key });
-    } catch (err) {
-      console.log("Error creating account: " + err);
+// create a local account object either based on our lnurl key or email address
+export async function createMongoAccount(params: any) {
+  if (params.key) {
+    if (await checkLNUserExists(params.key)) {
+      return false;
+    } else {
+      if (await users.create({ lnurlKey: params.key })) return true;
+    }
+  } else if (params.email) {
+    let existingUser = await users.findOne({ email: params.email });
+    if (existingUser) {
+      return false;
+    } else {
+      const pwd = crypto
+        .createHash("sha256")
+        .update(params.password)
+        .digest("hex");
+      if (await users.create({ email: params.email, password: pwd }))
+        return true;
     }
   } else {
-    console.log("user exists, not creating");
+    console.log("Creating account requires key or email");
+    return false;
   }
 }
 
@@ -76,7 +92,7 @@ export async function updateUserAccount(newAccountDetails: any) {
   } else if (newAccountDetails.email) {
     if (await checkEmailUserExists(newAccountDetails.email)) {
       // update based on email
-      users.updateOne(
+      await users.updateOne(
         { email: newAccountDetails.email },
         {
           $set: {
@@ -93,20 +109,50 @@ export async function updateUserAccount(newAccountDetails: any) {
   }
 }
 
-// Create an account with a given email address and password
-export async function createAccountByEmail(properties: {
-  email: string;
-  password: string;
-}) {
-  let existingUser = await users.findOne({ email: properties.email });
-  if (existingUser) {
-    return false;
-  } else {
-    const pwd = crypto
-      .createHash("sha256")
-      .update(properties.password)
-      .digest("hex");
-    await users.create({ email: properties.email, password: pwd });
-    return true;
+// Add lnbits details for a single account identifed by key or email
+export async function addLnbitsAccount(newAccountDetails: any) {
+  if (newAccountDetails.lnurlKey) {
+    if (await checkLNUserExists(newAccountDetails.lnurlKey)) {
+      // update based on lnurlKey
+      console.log("updating account: " + newAccountDetails.lnurlKey);
+      await users.updateOne(
+        { lnurlKey: newAccountDetails.lnurlKey },
+        {
+          $set: {
+            lnbitsUsername: newAccountDetails.lnbitsUsername,
+            lnbitsUserId: newAccountDetails.lnbitsUserId,
+            lnbitsWalletName: newAccountDetails.lnbitsWalletName,
+            lnbitsWalletId: newAccountDetails.lnbitsWalletId,
+          },
+          $currentDate: { lastModified: true },
+        }
+      );
+      return true;
+    } else {
+      // a lnurlkey was specified but does not exist, throw error
+      console.log("Unable to find given user by lnurlKey");
+      return false;
+    }
+  } else if (newAccountDetails.email) {
+    if (await checkEmailUserExists(newAccountDetails.email)) {
+      // update based on email
+      await users.updateOne(
+        { email: newAccountDetails.email },
+        {
+          $set: {
+            lnbitsUsername: newAccountDetails.lnbitsUsername,
+            lnbitsUserId: newAccountDetails.lnbitsUserId,
+            lnbitsWalletName: newAccountDetails.lnbitsWalletName,
+            lnbitsWalletId: newAccountDetails.lnbitsWalletId,
+          },
+          $currentDate: { lastModified: true },
+        }
+      );
+      return true;
+    } else {
+      // email address was specified but does not exist, throw error
+      console.log("Unable to find given user by email");
+      return false;
+    }
   }
 }

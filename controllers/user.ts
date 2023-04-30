@@ -1,16 +1,44 @@
 import { Request, Response, NextFunction } from "express";
 import { responseError } from "../helpers";
 import lnurlServer from "../helpers/lnurl";
+import { createLnbitsAccount } from "../helpers/lnbits";
 import {
-  addUserFromLN,
+  createMongoAccount,
   updateUserAccount,
-  createAccountByEmail,
   checkEmailUserExists,
   checkLNUserExists,
+  addLnbitsAccount,
 } from "../helpers/mongo";
 import crypto from "crypto";
 
 const Pusher = require("pusher");
+
+async function initialiseLnbitsAccount(identifier: any) {
+  if (identifier.key) {
+    const lnbits = await createLnbitsAccount();
+    await addLnbitsAccount({
+      lnurlKey: identifier.key,
+      lnbitsUsername: lnbits?.user_name,
+      lnbitsUserId: lnbits?.user_id,
+      lnbitsWalletId: lnbits?.wallet_id,
+      lnbitsWalletName: lnbits?.wallet_name,
+    });
+    return true;
+  } else if (identifier.email) {
+    const lnbits = await createLnbitsAccount();
+    await addLnbitsAccount({
+      email: identifier.email,
+      lnbitsUsername: lnbits?.user_name,
+      lnbitsUserId: lnbits?.user_id,
+      lnbitsWalletId: lnbits?.wallet_id,
+      lnbitsWalletName: lnbits?.wallet_name,
+    });
+    return true;
+  } else {
+    console.log("no account identifier provided: " + identifier);
+    return false;
+  }
+}
 
 export const loginWithEmail = async (
   req: Request,
@@ -49,7 +77,8 @@ export const createAccount = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    if (await createAccountByEmail(req.body)) {
+    if (await createMongoAccount(req.body)) {
+      await initialiseLnbitsAccount({ email: req.body.email });
       res.json({ status: "OK" });
     } else {
       return responseError(res, 400, "Unable to create account");
@@ -98,6 +127,7 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
+// handle the actual login via lnurl as a callback
 export const pseudoLogin = async (
   req: Request,
   res: Response,
@@ -124,7 +154,9 @@ export const pseudoLogin = async (
         name,
       });
 
-      addUserFromLN(key);
+      if (await createMongoAccount({ key: key })) {
+        await initialiseLnbitsAccount({ key: key });
+      }
       // Send {status: "OK"} so the client acknowledges the login success
       res.json({ status: "OK" });
     } else {

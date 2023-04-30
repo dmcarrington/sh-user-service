@@ -2,9 +2,16 @@ version: "2.2"
 
 services:     
   mongo:
+    container_name: mongo
     image: mongodb/mongodb-community-server:latest
     ports:
       - 27017:27017
+
+  tor:
+    container_name: tor
+    image: dperson/torproxy:latest
+    ports:
+      - 9050:9050
   
   user-service:
     container_name: sh-user-service
