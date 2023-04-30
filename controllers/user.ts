@@ -53,7 +53,6 @@ export const createAccount = async (
   try {
     if (await createAccountByEmail(req.body)) {
       const lnbits = await createLnbitsAccount();
-      console.log(lnbits);
       await addLnbitsAccount({
         email: req.body.email,
         lnbitsUsername: lnbits?.user_name,
@@ -135,7 +134,16 @@ export const pseudoLogin = async (
         name,
       });
 
-      addUserFromLN(key);
+      if (await addUserFromLN(key)) {
+        const lnbits = await createLnbitsAccount();
+        await addLnbitsAccount({
+          email: req.body.email,
+          lnbitsUsername: lnbits?.user_name,
+          lnbitsUserId: lnbits?.user_id,
+          lnbitsWalletId: lnbits?.wallet_id,
+          lnbitsWalletName: lnbits?.wallet_name,
+        });
+      }
       // Send {status: "OK"} so the client acknowledges the login success
       res.json({ status: "OK" });
     } else {

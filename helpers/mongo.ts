@@ -47,12 +47,14 @@ export async function addUserFromLN(key: any) {
   if (!(await checkLNUserExists(key))) {
     console.log("creating account: " + key);
     try {
-      await users.create({ lnurlKey: key });
+      if (await users.create({ lnurlKey: key })) return true;
     } catch (err) {
       console.log("Error creating account: " + err);
+      return false;
     }
   } else {
     console.log("user exists, not creating");
+    return false;
   }
 }
 
