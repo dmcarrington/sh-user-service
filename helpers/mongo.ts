@@ -1,6 +1,7 @@
 let mongoose = require("mongoose");
 import "dotenv/config";
 const crypto = require("crypto");
+import { NostrAccount } from "../interfaces/nostr";
 
 // connect to mongo, for now on our local docker network
 const mongoURI = process.env.MONGO_CONNECTION_STRING;
@@ -17,6 +18,8 @@ let userSchema = new mongoose.Schema({
   lnbitsUserId: String, // lnbits local user id
   lnbitsWalletName: String, // name of the above user's lbnits account (always 'satoshis_hive' for now)
   lnbitsWalletId: String, // lnbits local wallet id
+  nostrSk: String, // Nostr secret key for this account
+  nostrPk: String, // Nostr public key for this account
 });
 
 // Instantiate user schema
@@ -154,5 +157,35 @@ export async function addLnbitsAccount(newAccountDetails: any) {
       console.log("Unable to find given user by email");
       return false;
     }
+  }
+}
+
+// Add Nostr secret and public keys to the account in Mongo
+export async function addNostrAccount(nostrAccount: NostrAccount) {
+  if (nostrAccount.email) {
+    return await users.updateOne(
+      { email: nostrAccount.email },
+      {
+        $set: {
+          nostrSk: nostrAccount.sk,
+          nostrPk: nostrAccount.pk,
+        },
+        $currentDate: { lastModified: true },
+      }
+    );
+  } else if (nostrAccount.lnurlKey) {
+    return await users.updateOne(
+      { lnurlKey: nostrAccount.lnurlKey },
+      {
+        $set: {
+          nostrSk: nostrAccount.sk,
+          nostrPk: nostrAccount.pk,
+        },
+        $currentDate: { lastModified: true },
+      }
+    );
+  } else {
+    console.log("no account identifier provided");
+    return false;
   }
 }
