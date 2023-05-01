@@ -8,11 +8,34 @@ import {
   checkEmailUserExists,
   checkLNUserExists,
   addLnbitsAccount,
+  addNostrAccount,
 } from "../helpers/mongo";
+import { generateKeys } from "../helpers/nostr";
+import { NostrAccount } from "../interfaces/nostr";
 import crypto from "crypto";
 
 const Pusher = require("pusher");
 
+// Generate Nostr keys and save them to account in Mongo
+async function initialiseNostrAccount(identifier: any) {
+  const nostrKeys = await generateKeys();
+  let nostrAccount: NostrAccount = {
+    sk: nostrKeys.sk,
+    pk: nostrKeys.pk,
+    lnurlKey: "",
+    email: "",
+  };
+
+  if (identifier.key) {
+    nostrAccount.lnurlKey = identifier.key;
+  } else if (identifier.email) {
+    nostrAccount.email = identifier.email;
+  }
+
+  return await addNostrAccount(nostrAccount);
+}
+
+// Generate lnbits user and wallet, and save to our account in Mongo
 async function initialiseLnbitsAccount(identifier: any) {
   if (identifier.key) {
     const lnbits = await createLnbitsAccount();
@@ -79,6 +102,7 @@ export const createAccount = async (
   try {
     if (await createMongoAccount(req.body)) {
       await initialiseLnbitsAccount({ email: req.body.email });
+      await initialiseNostrAccount({ email: req.body.email });
       res.json({ status: "OK" });
     } else {
       return responseError(res, 400, "Unable to create account");
@@ -156,6 +180,7 @@ export const pseudoLogin = async (
 
       if (await createMongoAccount({ key: key })) {
         await initialiseLnbitsAccount({ key: key });
+        await initialiseNostrAccount({ key: key });
       }
       // Send {status: "OK"} so the client acknowledges the login success
       res.json({ status: "OK" });
