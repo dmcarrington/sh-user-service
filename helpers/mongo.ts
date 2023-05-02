@@ -3,7 +3,6 @@ import "dotenv/config";
 const crypto = require("crypto");
 import { NostrAccount } from "../interfaces/nostr";
 import { LnbitsAccount } from "../interfaces/lnbits";
-const _ = require("underscore");
 
 // connect to mongo, for now on our local docker network
 const mongoURI = process.env.MONGO_CONNECTION_STRING;

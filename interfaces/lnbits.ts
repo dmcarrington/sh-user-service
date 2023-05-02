@@ -1,3 +1,4 @@
+// parameters required to identify an account in mongo
 export interface LnbitsAccount {
   lnurlKey: string;
   email: string;
