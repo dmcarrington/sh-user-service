@@ -1,0 +1,70 @@
+{
+	"info": {
+		"_postman_id": "e90a0c48-1ae4-44fe-a7c6-035146b848fd",
+		"name": "Satoshis Hive",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26129405"
+	},
+	"item": [
+		{
+			"name": "update-account",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\":\"dmcarrington@googlemail.com\",\n    \"name\":\"david\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5001/api/user/update-account",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5001",
+					"path": [
+						"api",
+						"user",
+						"update-account"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "signup with username",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\":\"dmcarrington@googlemail.com\",\n    \"password\":\"pass\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5001/api/user/signup-username",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5001",
+					"path": [
+						"api",
+						"user",
+						"signup-username"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

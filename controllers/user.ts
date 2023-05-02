@@ -12,9 +12,18 @@ import {
 } from "../helpers/mongo";
 import { generateKeys } from "../helpers/nostr";
 import { NostrAccount } from "../interfaces/nostr";
+import { LnbitsAccount } from "../interfaces/lnbits";
 import crypto from "crypto";
 
+// Instantiate Pusher as an alternative to websockets so we can deploy the FE on Vercel
 const Pusher = require("pusher");
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true,
+});
 
 // Generate Nostr keys and save them to account in Mongo
 async function initialiseNostrAccount(identifier: any) {
@@ -37,32 +46,29 @@ async function initialiseNostrAccount(identifier: any) {
 
 // Generate lnbits user and wallet, and save to our account in Mongo
 async function initialiseLnbitsAccount(identifier: any) {
-  if (identifier.key) {
-    const lnbits = await createLnbitsAccount();
-    await addLnbitsAccount({
-      lnurlKey: identifier.key,
-      lnbitsUsername: lnbits?.user_name,
-      lnbitsUserId: lnbits?.user_id,
-      lnbitsWalletId: lnbits?.wallet_id,
-      lnbitsWalletName: lnbits?.wallet_name,
-    });
-    return true;
-  } else if (identifier.email) {
-    const lnbits = await createLnbitsAccount();
-    await addLnbitsAccount({
-      email: identifier.email,
-      lnbitsUsername: lnbits?.user_name,
-      lnbitsUserId: lnbits?.user_id,
-      lnbitsWalletId: lnbits?.wallet_id,
-      lnbitsWalletName: lnbits?.wallet_name,
-    });
-    return true;
+  const lnbits = await createLnbitsAccount();
+  if (lnbits) {
+    let lnbitsAccount: LnbitsAccount = {
+      lnurlKey: "",
+      email: "",
+      lnbitsUserId: lnbits.user_id,
+      lnbitsUsername: lnbits.user_name,
+      lnbitsWalletId: lnbits.wallet_id,
+      lnbitsWalletName: lnbits.wallet_name,
+    };
+    if (identifier.key) {
+      lnbitsAccount.lnurlKey = identifier.key;
+    } else if (identifier.email) {
+      lnbitsAccount.email = identifier.email;
+    }
+    return await addLnbitsAccount(lnbitsAccount);
   } else {
-    console.log("no account identifier provided: " + identifier);
+    console.log("failed to create lnbits account for user!");
     return false;
   }
 }
 
+// verify login with email account & password
 export const loginWithEmail = async (
   req: Request,
   res: Response,
@@ -94,6 +100,7 @@ export const loginWithEmail = async (
   }
 };
 
+// Create an account authenticated from username & password as alternative to lnurl
 export const createAccount = async (
   req: Request,
   res: Response,
@@ -112,6 +119,7 @@ export const createAccount = async (
   }
 };
 
+// Update optional fields on the account
 export const updateAccount = async (
   req: Request,
   res: Response,
@@ -119,7 +127,6 @@ export const updateAccount = async (
 ): Promise<any> => {
   try {
     const updatedAccount = req.body;
-    console.log("updating account with new body " + req.body);
     if (await updateUserAccount(updatedAccount)) {
       res.json({ status: "OK" });
     } else {
@@ -142,14 +149,6 @@ export const lnurlLogin = async (
     next(err);
   }
 };
-
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID,
-  key: process.env.PUSHER_KEY,
-  secret: process.env.PUSHER_SECRET,
-  cluster: process.env.PUSHER_CLUSTER,
-  useTLS: true,
-});
 
 // handle the actual login via lnurl as a callback
 export const pseudoLogin = async (

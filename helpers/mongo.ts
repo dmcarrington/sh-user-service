@@ -2,6 +2,7 @@ let mongoose = require("mongoose");
 import "dotenv/config";
 const crypto = require("crypto");
 import { NostrAccount } from "../interfaces/nostr";
+import { LnbitsAccount } from "../interfaces/lnbits";
 
 // connect to mongo, for now on our local docker network
 const mongoURI = process.env.MONGO_CONNECTION_STRING;
@@ -74,89 +75,78 @@ export async function createMongoAccount(params: any) {
 // Update account details for a single account identifed by key or email
 export async function updateUserAccount(newAccountDetails: any) {
   if (newAccountDetails.lnurlKey) {
-    if (await checkLNUserExists(newAccountDetails.lnurlKey)) {
-      // update based on lnurlKey
-      console.log("updating account: " + newAccountDetails.lnurlKey);
-      await users.updateOne(
-        { lnurlKey: newAccountDetails.lnurlKey },
-        {
-          $set: {
-            email: newAccountDetails.email,
-            name: newAccountDetails.name,
-          },
-          $currentDate: { lastModified: true },
-        }
-      );
+    // update based on lnurlKey
+    console.log("updating account: " + newAccountDetails.lnurlKey);
+    const res = await users.updateOne(
+      { lnurlKey: newAccountDetails.lnurlKey },
+      {
+        $set: {
+          email: newAccountDetails.email,
+          name: newAccountDetails.name,
+        },
+        $currentDate: { lastModified: true },
+      }
+    );
+    if (res.modifiedCount == 1) {
       return true;
-    } else {
-      // a lnurlkey was specified but does not exist, throw error
-      return false;
     }
+    return false;
   } else if (newAccountDetails.email) {
-    if (await checkEmailUserExists(newAccountDetails.email)) {
-      // update based on email
-      await users.updateOne(
-        { email: newAccountDetails.email },
-        {
-          $set: {
-            name: newAccountDetails.name,
-          },
-          $currentDate: { lastModified: true },
-        }
-      );
+    // update based on email
+    const res = await users.updateOne(
+      { email: newAccountDetails.email },
+      {
+        $set: {
+          name: newAccountDetails.name,
+        },
+        $currentDate: { lastModified: true },
+      }
+    );
+    if (res.modifiedCount == 1) {
       return true;
-    } else {
-      // email address was specified but does not exist, throw error
-      return false;
     }
+    return false;
   }
 }
 
 // Add lnbits details for a single account identifed by key or email
-export async function addLnbitsAccount(newAccountDetails: any) {
+export async function addLnbitsAccount(newAccountDetails: LnbitsAccount) {
   if (newAccountDetails.lnurlKey) {
-    if (await checkLNUserExists(newAccountDetails.lnurlKey)) {
-      // update based on lnurlKey
-      console.log("updating account: " + newAccountDetails.lnurlKey);
-      await users.updateOne(
-        { lnurlKey: newAccountDetails.lnurlKey },
-        {
-          $set: {
-            lnbitsUsername: newAccountDetails.lnbitsUsername,
-            lnbitsUserId: newAccountDetails.lnbitsUserId,
-            lnbitsWalletName: newAccountDetails.lnbitsWalletName,
-            lnbitsWalletId: newAccountDetails.lnbitsWalletId,
-          },
-          $currentDate: { lastModified: true },
-        }
-      );
+    // update based on lnurlKey
+    const res = await users.updateOne(
+      { lnurlKey: newAccountDetails.lnurlKey },
+      {
+        $set: {
+          lnbitsUsername: newAccountDetails.lnbitsUsername,
+          lnbitsUserId: newAccountDetails.lnbitsUserId,
+          lnbitsWalletName: newAccountDetails.lnbitsWalletName,
+          lnbitsWalletId: newAccountDetails.lnbitsWalletId,
+        },
+        $currentDate: { lastModified: true },
+      }
+    );
+    if (res.modifiedCount == 1) {
       return true;
-    } else {
-      // a lnurlkey was specified but does not exist, throw error
-      console.log("Unable to find given user by lnurlKey");
-      return false;
     }
+    return false;
   } else if (newAccountDetails.email) {
-    if (await checkEmailUserExists(newAccountDetails.email)) {
-      // update based on email
-      await users.updateOne(
-        { email: newAccountDetails.email },
-        {
-          $set: {
-            lnbitsUsername: newAccountDetails.lnbitsUsername,
-            lnbitsUserId: newAccountDetails.lnbitsUserId,
-            lnbitsWalletName: newAccountDetails.lnbitsWalletName,
-            lnbitsWalletId: newAccountDetails.lnbitsWalletId,
-          },
-          $currentDate: { lastModified: true },
-        }
-      );
+    // update based on email
+    const res = await users.updateOne(
+      { email: newAccountDetails.email },
+      {
+        $set: {
+          lnbitsUsername: newAccountDetails.lnbitsUsername,
+          lnbitsUserId: newAccountDetails.lnbitsUserId,
+          lnbitsWalletName: newAccountDetails.lnbitsWalletName,
+          lnbitsWalletId: newAccountDetails.lnbitsWalletId,
+        },
+        $currentDate: { lastModified: true },
+      }
+    );
+    if (res.modifiedCount == 1) {
       return true;
-    } else {
-      // email address was specified but does not exist, throw error
-      console.log("Unable to find given user by email");
-      return false;
     }
+    return false;
   }
 }
 
