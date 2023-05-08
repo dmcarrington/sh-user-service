@@ -9,6 +9,7 @@ import {
   checkLNUserExists,
   addLnbitsAccount,
   addNostrAccount,
+  getMongoAccountIds,
 } from "../helpers/mongo";
 import { generateKeys } from "../helpers/nostr";
 import { NostrAccount } from "../interfaces/nostr";
@@ -186,6 +187,20 @@ export const pseudoLogin = async (
     } else {
       return responseError(res, 404, "Unsuccesful LNURL AUTH login");
     }
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Return a list of all identifiers (lnurlKey or email) of all users on the system
+export const getUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    const accountIDs = await getMongoAccountIds();
+    res.json({ accountIDs });
   } catch (err) {
     next(err);
   }

@@ -65,6 +65,39 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Get all user account IDs",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\":\"dmcarrington@googlemail.com\",\n    \"password\":\"pass\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5001/api/user/list-users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5001",
+					"path": [
+						"api",
+						"user",
+						"list-users"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
