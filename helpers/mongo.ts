@@ -179,3 +179,9 @@ export async function addNostrAccount(nostrAccount: NostrAccount) {
     return false;
   }
 }
+
+// Return the identifier (email or lnurl key) of all users on our system
+export async function getMongoAccountIds() {
+  const accounts = users.find({}, { lnurlKey: 1, email: 1, _id: 0 });
+  return accounts;
+}
