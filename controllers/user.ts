@@ -86,9 +86,13 @@ export const loginWithEmail = async (
         res.json(user);
         const email = user.email;
         const name = user.name;
+        const nostrSk = user.nostrSk;
+        const nostrPk = user.nostrPk;
         pusher.trigger("lnd-auth", "auth", {
           email,
           name,
+          nostrSk,
+          nostrPk,
         });
       } else {
         return responseError(res, 401, "unauthorized");
@@ -167,15 +171,21 @@ export const pseudoLogin = async (
       const user = await checkLNUserExists(key);
       let email = "";
       let name = "";
+      let nostrSk = "";
+      let nostrPk = "";
       if (user) {
         email = user.email;
         name = user.name;
+        nostrSk = user.nostrSk;
+        nostrPk = user.nostrPk;
       }
 
       pusher.trigger("lnd-auth", "auth", {
         key,
         email,
         name,
+        nostrSk,
+        nostrPk,
       });
 
       if (await createMongoAccount({ key: key })) {
